@@ -23,7 +23,7 @@ RUN dnf config-manager --enable crb && \
       rubygem-pg \
       rubygem-psych \
       rubygem-terser && \
-    dnf clean all && \
+    dnf clean all
     
 
 RUN useradd coder \
