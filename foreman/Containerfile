@@ -8,7 +8,7 @@ RUN dnf install -y \
       sudo
 
 # Foreman packages
-RUN dnf install -y 
+RUN dnf install -y \
       https://yum.puppet.com/puppet8-release-el-9.noarch.rpm \
       https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
     dnf install -y foreman foreman-installer
@@ -21,6 +21,7 @@ RUN dnf config-manager --enable crb && \
       redhat-rpm-config \
       ruby-devel \
       rubygem-pg \
+      rubygem-psych \
       rubygem-terser && \
     dnf clean all && \
     
