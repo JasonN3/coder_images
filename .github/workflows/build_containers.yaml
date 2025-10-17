@@ -1,0 +1,102 @@
+name: Build Container
+
+on:
+  workflow_dispatch: {}
+
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+  
+  release:
+    types:
+      - published
+
+jobs:
+  build-container:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - foreman
+        arch:
+          - amd64
+        include:
+          - arch: amd64
+            os: ubuntu-24.04
+    name: Build Container Image
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # needed for signing the images with GitHub OIDC Token
+    steps:
+      - name: Replace container storage with /mnt
+        run: |
+          df -h
+          # Make /mnt directories
+          sudo mkdir /mnt/containers /mnt/usr_containers
+          
+          # Set permissions for non-root container storage
+          sudo chown $USER /mnt/usr_containers
+          
+          # Replace root container storage
+          sudo mv /var/lib/containers/storage /var/lib/containers/storage.orig
+          sudo ln -s /mnt/containers /var/lib/containers/storage
+          
+          # Replace user container storage
+          mkdir -p ~/.local/share/containers
+          ln -s /mnt/usr_containers ~/.local/share/containers/storage
+          
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          fetch-tags: 'true'
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          flavor: |
+            suffix=-${{ matrix.variant }}
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}.{{minor}}.{{patch}}
+
+      - name: Buildah Build
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: ${{ matrix.variant }}/Containerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Push image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Show remaining space
+        if: failure()
+        run: |
+          df -h
