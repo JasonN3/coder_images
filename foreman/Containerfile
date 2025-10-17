@@ -10,7 +10,7 @@ RUN dnf install -y \
 # Foreman packages
 RUN dnf install -y https://yum.puppet.com/puppet8-release-el-9.noarch.rpm && \
     dnf install -y https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
-    dnf install -y foreman-installer && \
+    dnf install -y foreman foreman-installer && \
     dnf clean all
 
 RUN useradd coder \
