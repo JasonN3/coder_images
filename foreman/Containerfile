@@ -7,11 +7,6 @@ RUN dnf install -y \
       jq \
       sudo
 
-# Make typing unicode characters in the terminal work.
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US.UTF-8
-ENV LC_ALL=en_US.UTF-8
-
 # Foreman packages
 RUN dnf install -y https://yum.puppet.com/puppet8-release-el-9.noarch.rpm && \
     dnf install -y https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
