@@ -1,8 +1,11 @@
 FROM quay.io/centos/centos:stream9
 
 # Basic packages
-RUN dnf install -y \
+RUN dnf install -y epel-release && \
+    dnf install -y \
       bash \
+      bash-color-prompt \
+      bash-completion \
       git \
       jq \
       sudo
