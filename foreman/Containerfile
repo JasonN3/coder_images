@@ -4,13 +4,8 @@ FROM quay.io/centos/centos:stream9
 RUN dnf install -y \
       bash \
       git \
-      glibc-langpack-en \
-      glibc-locale-source \
       jq \
-      sudo 
-
-# Generate the desired locale (en_US.UTF-8)
-RUN localedef en_US.UTF-8
+      sudo
 
 # Make typing unicode characters in the terminal work.
 ENV LANG=en_US.UTF-8
@@ -20,7 +15,8 @@ ENV LC_ALL=en_US.UTF-8
 # Foreman packages
 RUN dnf install -y https://yum.puppet.com/puppet8-release-el-9.noarch.rpm && \
     dnf install -y https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
-    dnf install -y foreman-installer
+    dnf install -y foreman-installer && \
+    dnf clean all
 
 RUN useradd coder \
     --create-home \
