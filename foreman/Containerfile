@@ -1,17 +1,33 @@
 FROM quay.io/centos/centos:stream9
 
 # Basic packages
-RUN dnf install -y \
+RUN dnf install -y epel-release && \
+    dnf install -y \
       bash \
+      bash-color-prompt \
+      bash-completion \
       git \
       jq \
       sudo
 
 # Foreman packages
-RUN dnf install -y https://yum.puppet.com/puppet8-release-el-9.noarch.rpm && \
-    dnf install -y https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
-    dnf install -y foreman foreman-installer && \
+RUN dnf install -y \
+      https://yum.puppet.com/puppet8-release-el-9.noarch.rpm \
+      https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
+    dnf install -y foreman foreman-installer
+
+# Foreman Plugin Development packages
+RUN dnf config-manager --enable crb && \
+    dnf install -y \
+      gcc \
+      libyaml-devel \
+      redhat-rpm-config \
+      ruby-devel \
+      rubygem-pg \
+      rubygem-psych \
+      rubygem-terser && \
     dnf clean all
+    
 
 RUN useradd coder \
     --create-home \
