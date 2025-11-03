@@ -25,14 +25,14 @@ RUN useradd coder \
 RUN dnf config-manager --enable crb
 
 # Enable NodeJS 22
-RUN dnf module enable nodejs:22
+RUN dnf module enable -y nodejs:22
 RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler \
     libvirt-devel postgresql-devel openssl-devel \
     libxml2-devel libxslt-devel zlib-devel \
     readline-devel systemd-devel tar libcurl-devel nodejs
 
 # Set up PostgreSQL
-RUN dnf install postgresql-server
+RUN dnf install -y postgresql-server
 RUN postgresql-setup --initdb
 RUN systemctl enable --now postgresql
 RUN postgres createuser --createdb coder
