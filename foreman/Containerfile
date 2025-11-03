@@ -33,10 +33,14 @@ RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler \
 
 # Set up PostgreSQL
 RUN dnf install -y postgresql-server
-RUN postgresql-setup --initdb
-RUN systemctl enable --now postgresql
-RUN postgres createuser --createdb coder
+RUN install -o postgres -g postgres -d /var/run/postgresql
+USER postgres
+RUN PGDATA=/var/lib/pgsql/data initdb
+RUN pg_ctl -D /var/lib/pgsql/data start && \
+    createuser --createdb coder
+    pg_ctl -D /var/lib/pgsql/data stop
 
+USER coder
 # On Github create your own fork
 RUN git clone git@github.com:theforeman/foreman.git
 RUN cd foreman
@@ -48,11 +52,10 @@ RUN bundle install
 RUN npm install
 
 # Set up database schema
-RUN bundle exec rake db:create # if not already created
-RUN bundle exec rake db:migrate
-RUN SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed
-
-
+RUN sudo -u postgres pg_ctl -D /var/lib/pgsql/data start && \
+    bundle exec rake db:create && \
+    bundle exec rake db:migrate && \
+    SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed && \
+    sudo -u postgres pg_ctl -D /var/lib/pgsql/data stop
 
 # Finalize as coder image
-USER coder
