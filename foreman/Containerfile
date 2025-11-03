@@ -43,7 +43,7 @@ RUN pg_ctl -D /var/lib/pgsql/data start && \
     createuser --createdb coder && \
     pg_ctl -D /var/lib/pgsql/data stop
 
-RUN install -o coder -g coder -d /foreman
+RUN mkdir /foreman && chown coder:coder /foreman
 
 USER coder
 WORKDIR /foreman
