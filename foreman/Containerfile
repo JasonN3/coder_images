@@ -54,4 +54,4 @@ USER root
 RUN cd /home/coder/foreman && bundle install && npm install
 
 USER coder
-COPY Makefile ./
+COPY foreman/Makefile ./
