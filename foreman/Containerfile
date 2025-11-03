@@ -47,8 +47,10 @@ RUN git clone https://github.com/theforeman/foreman.git && \
     cd foreman && \
     cp config/settings.yaml.example config/settings.yaml && \
     cp config/database.yml.example config/database.yml && \
-    sudo bundle install && \
-    sudo npm install
+USER root
+RUN cd foremane && \
+    bundle install && \
+    npm install
 
 # Set up database schema
 RUN sudo -u postgres pg_ctl -D /var/lib/pgsql/data start && \
@@ -58,3 +60,4 @@ RUN sudo -u postgres pg_ctl -D /var/lib/pgsql/data start && \
     sudo -u postgres pg_ctl -D /var/lib/pgsql/data stop
 
 # Finalize as coder image
+USER coder
