@@ -43,8 +43,10 @@ RUN pg_ctl -D /var/lib/pgsql/data start && \
     createuser --createdb coder && \
     pg_ctl -D /var/lib/pgsql/data stop
 
+RUN mkdir /foreman
+
 USER coder
-WORKDIR /home/coder
+WORKDIR /foreman
 RUN git clone https://github.com/theforeman/foreman.git && \
 	cd foreman && \
     cp config/settings.yaml.example config/settings.yaml && \
