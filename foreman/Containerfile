@@ -19,7 +19,8 @@ RUN useradd coder \
     --user-group && \
     echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
     chmod 0440 /etc/sudoers.d/nopasswd && \
-    echo "Defaults !requiretty" >> /etc/sudoers
+    echo "Defaults !requiretty" >> /etc/sudoers && \
+    echo "coder:dummy" | chpasswd
 
 
 # Instructions from https://github.com/theforeman/foreman/blob/develop/developer_docs/foreman_dev_setup.asciidoc
