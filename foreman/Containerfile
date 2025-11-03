@@ -1,18 +1,16 @@
 FROM quay.io/centos/centos:stream9
 
-# Basic packages
+# Install basic packages
 RUN dnf install -y \
       bash \
+      bash-color-prompt \
+      bash-completion \
       git \
       jq \
-      sudo
+      sudo \
+      tmux
 
-# Foreman packages
-RUN dnf install -y https://yum.puppet.com/puppet8-release-el-9.noarch.rpm && \
-    dnf install -y https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
-    dnf install -y foreman foreman-installer && \
-    dnf clean all
-
+# Create coder user
 RUN useradd coder \
     --create-home \
     --shell=/bin/bash \
@@ -20,4 +18,40 @@ RUN useradd coder \
     --user-group && \
     echo "coder ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd
 
+# Instructions from https://github.com/theforeman/foreman/blob/develop/developer_docs/foreman_dev_setup.asciidoc
+
+# Enable CRB
+RUN dnf config-manager --enable crb
+
+# Enable NodeJS 22
+RUN dnf module enable nodejs:22
+RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler \
+    libvirt-devel postgresql-devel openssl-devel \
+    libxml2-devel libxslt-devel zlib-devel \
+    readline-devel systemd-devel tar libcurl-devel nodejs
+
+# Set up PostgreSQL
+RUN dnf install postgresql-server
+RUN postgresql-setup --initdb
+RUN systemctl enable --now postgresql
+RUN postgres createuser --createdb coder
+
+# On Github create your own fork
+RUN git clone git@github.com:theforeman/foreman.git
+RUN cd foreman
+RUN cp config/settings.yaml.example config/settings.yaml
+RUN cp config/database.yml.example config/database.yml
+
+# Install dependencies
+RUN bundle install
+RUN npm install
+
+# Set up database schema
+RUN bundle exec rake db:create # if not already created
+RUN bundle exec rake db:migrate
+RUN SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed
+
+
+
+# Finalize as coder image
 USER coder
