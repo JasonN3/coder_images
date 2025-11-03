@@ -17,7 +17,8 @@ RUN useradd coder \
     --shell=/bin/bash \
     --uid=1000 \
     --user-group && \
-    echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+    echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
+    chmod 0440 /etc/sudoers.d/nopasswd
 
 # Instructions from https://github.com/theforeman/foreman/blob/develop/developer_docs/foreman_dev_setup.asciidoc
 
@@ -43,6 +44,9 @@ RUN pg_ctl -D /var/lib/pgsql/data start && \
 USER coder
 WORKDIR /home/coder
 # Install Foreman from source
+RUN whoami && \
+    id && \
+    sudo echo hi
 RUN git clone https://github.com/theforeman/foreman.git && \
     cd foreman && \
     cp config/settings.yaml.example config/settings.yaml && \
