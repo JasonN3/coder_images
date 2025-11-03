@@ -41,15 +41,14 @@ RUN pg_ctl -D /var/lib/pgsql/data start && \
     pg_ctl -D /var/lib/pgsql/data stop
 
 USER coder
-# On Github create your own fork
-RUN git clone git@github.com:theforeman/foreman.git
-RUN cd foreman
-RUN cp config/settings.yaml.example config/settings.yaml
-RUN cp config/database.yml.example config/database.yml
-
-# Install dependencies
-RUN bundle install
-RUN npm install
+WORKDIR /home/coder
+# Install Foreman from source
+RUN git clone git@github.com:theforeman/foreman.git && \
+    cd foreman && \
+    cp config/settings.yaml.example config/settings.yaml && \
+    cp config/database.yml.example config/database.yml && \
+    bundle install && \
+    npm install
 
 # Set up database schema
 RUN sudo -u postgres pg_ctl -D /var/lib/pgsql/data start && \
