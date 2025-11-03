@@ -37,7 +37,7 @@ RUN install -o postgres -g postgres -d /var/run/postgresql
 USER postgres
 RUN PGDATA=/var/lib/pgsql/data initdb
 RUN pg_ctl -D /var/lib/pgsql/data start && \
-    createuser --createdb coder
+    createuser --createdb coder && \
     pg_ctl -D /var/lib/pgsql/data stop
 
 USER coder
