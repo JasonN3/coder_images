@@ -38,7 +38,7 @@ RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler rubygem-irb 
 RUN dnf install -y postgresql-server
 RUN install -o postgres -g postgres -d /var/run/postgresql
 USER postgres
-RUN PGDATA=/var/lib/pgsql/data initdb
+RUN PGDATA=/var/lib/pgsql/data initdb --encoding=UTF8
 RUN pg_ctl -D /var/lib/pgsql/data start && \
     createuser -s coder && \
     createuser -s root && \
