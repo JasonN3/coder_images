@@ -8,6 +8,7 @@ RUN dnf install -y epel-release && \
       bash-completion \
       git \
       jq \
+      procps \
       sudo \
       tmux
 
@@ -28,14 +29,15 @@ RUN useradd coder \
 RUN dnf config-manager --enable crb
 
 # Enable NodeJS 22
-RUN dnf module enable -y nodejs:22
-RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler rubygem-irb \
-    libvirt-devel postgresql-devel openssl-devel \
-    libxml2-devel libxslt-devel zlib-devel \
-    readline-devel systemd-devel tar libcurl-devel nodejs npm
+RUN dnf module enable -y nodejs:22 && \
+    dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler rubygem-irb \
+      libvirt-devel postgresql-devel openssl-devel \
+      libxml2-devel libxslt-devel zlib-devel \
+      readline-devel systemd-devel tar libcurl-devel nodejs npm && \
+    dnf clean all
 
 # Set up PostgreSQL
-RUN dnf install -y postgresql-server
+RUN dnf install -y postgresql-server && dnf clean all
 RUN install -o postgres -g postgres -d /var/run/postgresql
 USER postgres
 RUN PGDATA=/var/lib/pgsql/data initdb --encoding=UTF8
@@ -61,7 +63,8 @@ RUN su postgres -c "pg_ctl -D /var/lib/pgsql/data start" && \
     cd /foreman/foreman && \
     bundle exec rake db:create && \
     bundle exec rake db:migrate && \
-    SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed
+    SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed && \
+    chown -R coder:coder /foreman
 
 USER coder
 COPY foreman/Makefile ./
