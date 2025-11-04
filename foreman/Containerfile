@@ -32,7 +32,7 @@ RUN dnf config-manager --enable crb
 RUN dnf module enable -y nodejs:22 && \
     dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler rubygem-irb \
       libvirt-devel postgresql-devel openssl-devel \
-      libxml2-devel libxslt-devel zlib-devel \
+      libxml2-devel libxslt-devel libyaml-devel zlib-devel \
       readline-devel systemd-devel tar libcurl-devel nodejs npm && \
     dnf clean all
 
@@ -51,11 +51,14 @@ RUN install -o coder -g coder -d /foreman
 
 USER coder
 WORKDIR /foreman
+
 RUN git clone https://github.com/theforeman/foreman.git && \
 	cd foreman && \
     cp config/settings.yaml.example config/settings.yaml && \
 	cp config/database.yml.example config/database.yml && \
+    echo "gem 'katello'" > bundler.d/katello.rb
     npm install
+
 
 USER root
 RUN cd /foreman/foreman && bundle install
