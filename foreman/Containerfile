@@ -56,7 +56,7 @@ RUN git clone https://github.com/theforeman/foreman.git && \
 	cd foreman && \
     cp config/settings.yaml.example config/settings.yaml && \
 	cp config/database.yml.example config/database.yml && \
-    echo "gem 'katello'" > bundler.d/katello.rb
+    echo "gem 'katello'" > bundler.d/katello.rb && \
     npm install
 
 
