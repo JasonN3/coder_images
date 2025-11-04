@@ -29,7 +29,7 @@ RUN dnf config-manager --enable crb
 
 # Enable NodeJS 22
 RUN dnf module enable -y nodejs:22
-RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler \
+RUN dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler rubygem-irb \
     libvirt-devel postgresql-devel openssl-devel \
     libxml2-devel libxslt-devel zlib-devel \
     readline-devel systemd-devel tar libcurl-devel nodejs npm
@@ -56,6 +56,11 @@ RUN git clone https://github.com/theforeman/foreman.git && \
 
 USER root
 RUN cd /foreman/foreman && bundle install
+RUN sudo -u postgres pg_ctl -D /var/lib/pgsql/data start && \
+    cd /foreman/foreman && \
+    bundle exec rake db:create && \
+    bundle exec rake db:migrate && \
+    SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed
 
 USER coder
 COPY foreman/Makefile ./
