@@ -3,7 +3,7 @@ postgres/start:
 	sudo -u postgres pg_ctl -D /var/lib/pgsql/data status || sudo -u postgres pg_ctl -D /var/lib/pgsql/data start
 
 postgres/stop: foreman/rails/stop foreman/frontend/stop
-	sudo -u postgres pg_ctl -D /var/lib/pgsql/data status || sudo -u postgres pg_ctl -D /var/lib/pgsql/data stop
+	sudo -u postgres pg_ctl -D /var/lib/pgsql/data status && sudo -u postgres pg_ctl -D /var/lib/pgsql/data stop
 
 # Foreman
 ## Rails
