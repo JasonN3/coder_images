@@ -13,7 +13,7 @@ foreman/tmp/pids/server.pid: postgres/start
 	cd foreman && bundle exec rails s -b 0.0.0.0 -p 3000 &
 
 foreman/rails/stop:
-	if test -f foreman/tmp/pids/server.pid; then kill $$(cat foreman/tmp/pids/server.pid); tail --pid=$$(cat foreman/tmp/pids/server.pid) -f /dev/null; fi
+	if test -f foreman/tmp/pids/server.pid; then process=$$(cat foreman/tmp/pids/server.pid); kill $${process}; tail --pid=$${process} -f /dev/null; fi
 
 foreman/rails/restart: foreman/rails/stop foreman/rails/start
 
