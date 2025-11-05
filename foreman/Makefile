@@ -27,9 +27,13 @@ foreman/frontend/stop:
 
 foreman/frontend/restart: foreman/frontend/stop foreman/frontend/start
 
+# Smart Proxy
+smartproxy/start:
+	cd smart-proxy && bundle exec bin/smart-proxy
+
 # General
 
-start: postgres/start foreman/rails/start foreman/frontend/start
+start: postgres/start smart-proxy/start foreman/rails/start foreman/frontend/start
 
 stop: foreman/frontend/stop foreman/rails/stop postgres/stop
 
