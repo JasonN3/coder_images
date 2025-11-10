@@ -1,23 +1,86 @@
 FROM quay.io/centos/centos:stream9
 
-# Basic packages
-RUN dnf install -y \
+# Install basic packages
+RUN dnf install -y epel-release && \
+    dnf install -y \
       bash \
+      bash-color-prompt \
+      bash-completion \
       git \
       jq \
-      sudo
+      procps \
+      sudo \
+      tmux
 
-# Foreman packages
-RUN dnf install -y https://yum.puppet.com/puppet8-release-el-9.noarch.rpm && \
-    dnf install -y https://yum.theforeman.org/releases/3.16/el9/x86_64/foreman-release.rpm && \
-    dnf install -y foreman foreman-installer && \
-    dnf clean all
-
+# Create coder user
 RUN useradd coder \
     --create-home \
     --shell=/bin/bash \
     --uid=1000 \
     --user-group && \
-    echo "coder ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd
+    echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
+    chmod 0440 /etc/sudoers.d/nopasswd && \
+    echo "Defaults !requiretty" >> /etc/sudoers
+
+
+# Instructions from https://github.com/theforeman/foreman/blob/develop/developer_docs/foreman_dev_setup.asciidoc
+
+# Enable CRB
+RUN dnf config-manager --enable crb
+
+# Enable NodeJS 22
+RUN dnf module enable -y nodejs:22 && \
+    dnf -y install gcc-c++ make git ruby ruby-devel rubygem-bundler rubygem-irb \
+      libvirt-devel postgresql-devel openssl-devel \
+      libxml2-devel libxslt-devel libyaml-devel zlib-devel \
+      readline-devel systemd-devel tar libcurl-devel nodejs npm \
+      krb5-devel && \
+    dnf clean all
+
+# Set up PostgreSQL
+RUN dnf install -y postgresql-server && dnf clean all
+RUN install -o postgres -g postgres -d /var/run/postgresql
+USER postgres
+RUN PGDATA=/var/lib/pgsql/data initdb --encoding=UTF8
+RUN pg_ctl -D /var/lib/pgsql/data start && \
+    createuser -s coder && \
+    createuser -s root && \
+    pg_ctl -D /var/lib/pgsql/data stop
+
+USER root
+RUN install -o coder -g coder -d /foreman
 
 USER coder
+WORKDIR /foreman
+
+RUN git clone https://github.com/theforeman/foreman.git && \
+	cd foreman && \
+    cp config/settings.yaml.example config/settings.yaml && \
+	cp config/database.yml.example config/database.yml && \
+    echo "gem 'katello'" > bundler.d/katello.rb && \
+    npm install
+
+RUN git clone https://github.com/theforeman/smart-proxy && \
+    cd smart-proxy && \
+    cp config/settings.yml.example config/settings.yml && \
+    sed -i "s|^#:http_port: .*|:http_port: 8000|" config/settings.yml && \
+    sed -i "s|^#:foreman_url: .*|:foreman_url: http://localhost:3000|" config/settings.yml && \
+    sed -i "s|^#:bind_host: .*|:bind_host: ['*']|" config/settings.yml && \
+    sed -i "s|^#:trusted_hosts: .*|:trusted_hosts: ['localhost']|" config/settings.yml && \
+    sed -i "s|^#:log_file: .*|:log_file: /foreman/smart-proxy/logs/proxy.log|" config/settings.yml && \
+    install -o coder -g coder -d /foreman/smart-proxy/logs
+
+
+
+USER root
+RUN cd /foreman/foreman && bundle install
+RUN cd /foreman/smart-proxy && bundle install
+RUN su postgres -c "pg_ctl -D /var/lib/pgsql/data start" && \
+    cd /foreman/foreman && \
+    bundle exec rake db:create && \
+    bundle exec rake db:migrate && \
+    SEED_ADMIN_PASSWORD=admin bundle exec rake db:seed && \
+    chown -R coder:coder /foreman
+
+USER coder
+COPY foreman/Makefile ./
