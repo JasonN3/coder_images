@@ -28,7 +28,7 @@ foreman/frontend/stop:
 foreman/frontend/restart: foreman/frontend/stop foreman/frontend/start
 
 # Smart Proxy
-smartproxy/start:
+smart-proxy/start:
 	cd smart-proxy && bundle exec bin/smart-proxy
 
 # General
