@@ -67,7 +67,7 @@ RUN git clone https://github.com/theforeman/smart-proxy && \
     sed -i "s|^#:foreman_url: .*|:foreman_url: http://localhost:3000|" config/settings.yml && \
     sed -i "s|^#:bind_host: .*|:bind_host: ['*']|" config/settings.yml && \
     sed -i "s|^#:trusted_hosts: .*|:trusted_hosts: ['localhost']|" config/settings.yml && \
-    sed -i "s|^#:log_file: .*|:log_file: /foreman/smart-proxy/logs/proxy.log|" && \
+    sed -i "s|^#:log_file: .*|:log_file: /foreman/smart-proxy/logs/proxy.log|" config/settings.yml && \
     install -o coder -g coder -d /foreman/smart-proxy/logs
 
 
